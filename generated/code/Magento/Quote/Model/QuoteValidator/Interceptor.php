@@ -17,15 +17,6 @@ class Interceptor extends \Magento\Quote\Model\QuoteValidator implements \Magent
     /**
      * {@inheritdoc}
      */
-    public function validateQuoteAmount(\Magento\Quote\Model\Quote $quote, $amount)
-    {
-        $pluginInfo = $this->pluginList->getNext($this->subjectType, 'validateQuoteAmount');
-        return $pluginInfo ? $this->___callPlugins('validateQuoteAmount', func_get_args(), $pluginInfo) : parent::validateQuoteAmount($quote, $amount);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function validateBeforeSubmit(\Magento\Quote\Model\Quote $quote)
     {
         $pluginInfo = $this->pluginList->getNext($this->subjectType, 'validateBeforeSubmit');
