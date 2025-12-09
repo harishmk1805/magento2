@@ -1,0 +1,11 @@
+http:
+    routers:
+        node:
+            rule: HostRegexp(`{subdomain:.+}.eroswholesale.test`) || Host(`eroswholesale.test`)
+            service: node
+    
+    services:
+        node:
+            loadBalancer:
+                servers:
+                    -   url: http://host.docker.internal:3000

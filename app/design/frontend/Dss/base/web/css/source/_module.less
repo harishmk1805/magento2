@@ -1,0 +1,46 @@
+@import '_common-mixins.less';
+
+// .cms-index-index {
+//     .content-heading {
+//         background-color: @color-orange-1;
+//     }
+// }
+
+// .generate-class-demo-styles(page-header);
+
+& when (@media-common = true) {
+    .info.detailed {
+        .product.data.items {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+
+            .item.title {
+                margin: 0 16px 0 0;
+                text-align: center;
+
+                .switch {
+                    display: inline-block;
+                    border: none;
+                    background-color: @color-white;
+                    padding-bottom: 4px;
+
+                    &:hover {
+                        background-color: @color-white;
+                    }
+                }
+
+                &.active {
+                    .switch {
+                        border-bottom: 2px solid @color-green-3;
+                        color: @color-green-3;
+                    }
+                }
+            }
+
+            .item.content {
+                border: none;
+            }
+        }
+    }
+}

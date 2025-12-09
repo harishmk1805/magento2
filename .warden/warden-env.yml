@@ -1,0 +1,53 @@
+services:
+    nginx:
+        volumes:
+        - ./.warden/nginx/custom.conf:/etc/nginx/default.d/custom.conf
+
+    phpmyadmin:
+        restart: always
+        image: docker.io/library/phpmyadmin:latest
+        hostname: ${WARDEN_ENV_NAME}-phpmyadmin
+        domainname: phpmyadmin.${WARDEN_ENV_NAME}.test
+        ports:
+        - 8200:80
+        environment:
+        - PMA_HOSTS=db
+        - PMA_USER=magento
+        - PMA_PASSWORD=magento
+        - PMA_ABSOLUTE_URI=http://phpmyadmin.${TRAEFIK_DOMAIN}
+
+#    nginx:
+#        labels:
+#            traefik.http.middlewares.redirect-image-cache-path.redirectregex.regex: (.*)/media/catalog/product/cache/[0-9A-Za-z]+/(.*)
+#            traefik.http.middlewares.redirect-image-cache-path.redirectregex.replacement: $${1}/media/catalog/product/$${2}
+#            traefik.http.middlewares.redirect-image-cache-path.redirectregex.permanent: true
+#            traefik.http.routers.traefik.middlewares: redirect-image-cache-path
+    php-fpm:
+        build:
+            context: .warden/php-fpm
+            extra_hosts:
+                local.adani.test: ${TRAEFIK_ADDRESS:-0.0.0.0}
+                coal.adani.test: ${TRAEFIK_ADDRESS:-0.0.0.0}
+
+    php-debug:
+        build:
+            context: .warden/php-debug
+            extra_hosts:
+                local.adani.test: ${TRAEFIK_ADDRESS:-0.0.0.0}
+                coal.adani.test: ${TRAEFIK_ADDRESS:-0.0.0.0}
+
+    db:
+      volumes:
+        - .warden/db/mariadb-config.cnf:/etc/mysql/mariadb.conf.d/mariadb-config.cnf
+#    kibana:
+#        image: docker.elastic.co/kibana/kibana:7.9.3
+#        environment:
+#            SERVER_NAME: kibana.eroswholesale.com
+#            ELASTICSEARCH_HOSTS: '["http://elasticsearch:9200"]'
+#        labels:
+#            traefik.enable: "true"
+#            traefik.http.routers.kibana.rule: ' Host(`kibana.eroswholesale.test`)'
+#            traefik.http.routers.kibana.tls: 'true'
+#            traefik.http.services.kibana.loadbalancer.server.port: 5601
+#        depends_on:
+#            - elasticsearch
