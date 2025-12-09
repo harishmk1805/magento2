@@ -1,0 +1,50 @@
+# Magento generated files
+/generated/
+/var/
+/pub/media/
+/pub/static/
+/pub/errors/local.xml
+
+# Composer vendor directory
+/vendor/
+
+# Local configuration
+/app/etc/env.php
+/app/etc/config.php
+
+# IDE/Editor files
+/.idea/
+/*.iml
+/.vscode/
+/nbproject/
+
+# Cache / logs
+/.cache/
+/*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Node / Frontend build files
+/node_modules/
+/npm-debug.log
+/yarn-error.log
+
+# Backup / temp files
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# Deployment files
+/deploy.log
+/static-di/
+/static/
+
+# Composer files that should not be committed
+composer.lock
+
+# Environment-specific files
+/.env
+/.env.*
