@@ -212,6 +212,10 @@ if (!defined('T_NULLSAFE_OBJECT_OPERATOR')) {
     define('T_NULLSAFE_OBJECT_OPERATOR', 42387);
 }
 
+if (!defined('T_PIPE')) {
+    define('T_PIPE', 42408);
+}
+
 /**
  * Define PHP 8.1 tokens
  */
@@ -396,6 +400,7 @@ class PHPTokenizerInternal implements FullTokenizer
         T_FN => Tokens::T_FN,
         T_MATCH => Tokens::T_STRING,
         T_NULLSAFE_OBJECT_OPERATOR => Tokens::T_NULLSAFE_OBJECT_OPERATOR,
+        T_PIPE => Tokens::T_PIPE,
         T_READONLY => Tokens::T_READONLY,
         T_PRIVATE_SET => Tokens::T_PRIVATE_SET,
         T_PROTECTED_SET => Tokens::T_PROTECTED_SET,
@@ -854,19 +859,16 @@ class PHPTokenizerInternal implements FullTokenizer
         $attributeComment = null;
         $attributeCommentLine = null;
         $brackets = 0;
-        $asymmetricToken = false;
+        $skipTo = 0;
 
         foreach ($tokens as $index => $token) {
             $temp = (array) $token;
             $temp = $temp[0];
 
-            if ($asymmetricToken) {
-                if ($temp === ')') {
-                    $asymmetricToken = false;
-                }
-
+            if ($skipTo > $index) {
                 continue;
             }
+
             if ($attributeComment) {
                 if ($temp === '[') {
                     $brackets++;
@@ -884,15 +886,27 @@ class PHPTokenizerInternal implements FullTokenizer
                 }
 
                 $attributeComment .= is_array($token) ? $token[1] : $token;
-            } elseif ($temp === T_ATTRIBUTE) {
+
+                continue;
+            }
+
+            if ($temp === T_ATTRIBUTE) {
                 $attributeComment = '/* @';
                 $attributeCommentLine = $token[2];
                 $brackets = 1;
-            } elseif (is_array($token) && ($temp === T_NAME_QUALIFIED || $temp === T_NAME_FULLY_QUALIFIED)) {
+
+                continue;
+            }
+
+            if (is_array($token) && ($temp === T_NAME_QUALIFIED || $temp === T_NAME_FULLY_QUALIFIED)) {
                 foreach ($this->splitQualifiedNameToken($token) as $subToken) {
                     $result[] = $subToken;
                 }
-            } elseif (
+
+                continue;
+            }
+
+            if (
                 is_array($token)
                 && $temp === T_NAME_RELATIVE
                 && preg_match('/^namespace\\\\(.*)$/', $token[1], $match)
@@ -900,11 +914,19 @@ class PHPTokenizerInternal implements FullTokenizer
                 foreach ($this->splitRelativeNameToken($token, $match[1]) as $subToken) {
                     $result[] = $subToken;
                 }
-            } elseif (isset(self::$substituteTokens[$temp])) {
+
+                continue;
+            }
+
+            if (isset(self::$substituteTokens[$temp])) {
                 foreach (self::$substituteTokens[$temp] as $token) {
                     $result[] = $token;
                 }
-            } elseif ($temp === '?' && isset($tokens[$index + 1][0]) && $tokens[$index + 1][0] === T_OBJECT_OPERATOR) {
+
+                continue;
+            }
+
+            if ($temp === '?' && isset($tokens[$index + 1][0]) && $tokens[$index + 1][0] === T_OBJECT_OPERATOR) {
                 $tokens[$index + 1] = [
                     T_NULLSAFE_OBJECT_OPERATOR,
                     '?->',
@@ -912,8 +934,12 @@ class PHPTokenizerInternal implements FullTokenizer
                 ];
 
                 continue;
-            } elseif (in_array($temp, [T_PRIVATE, T_PROTECTED, T_PUBLIC], true) && $tokens[$index + 1][0] === '(' && $tokens[$index + 2][1] === 'set' && $tokens[$index + 3][0] === ')') {
-                $asymmetricToken = true;
+            }
+
+            if (in_array($temp, [T_PRIVATE, T_PROTECTED, T_PUBLIC], true)
+                && $tokens[$index + 1][0] === '(' && $tokens[$index + 2][1] === 'set' && $tokens[$index + 3][0] === ')'
+            ) {
+                $skipTo = $index + 4;
                 $result[] = match ($temp) {
                     T_PRIVATE => [T_PRIVATE_SET, 'private(set)', $token[2]],
                     T_PROTECTED => [T_PROTECTED_SET, 'protected(set)', $token[2]],
@@ -921,9 +947,16 @@ class PHPTokenizerInternal implements FullTokenizer
                 };
 
                 continue;
-            } else {
-                $result[] = $token;
             }
+
+            if ($temp === '|' && isset($tokens[$index + 1]) && $tokens[$index + 1] === '>') {
+                $result[] = [T_PIPE, '|>', 1];
+                $skipTo = $index + 2;
+
+                continue;
+            }
+
+            $result[] = $token;
         }
 
         return $result;
@@ -1008,11 +1041,11 @@ class PHPTokenizerInternal implements FullTokenizer
                     $image = $token[1];
 
                     // Check for a context sensitive alternative
-                    if (isset(self::$alternativeMap[$type][$previousType])) {
+                    if (isset($previousType, self::$alternativeMap[$type][$previousType])) {
                         $type = self::$alternativeMap[$type][$previousType];
                     }
 
-                    if (isset(self::$reductionMap[$type][$previousType])) {
+                    if (isset($previousType, self::$reductionMap[$type][$previousType])) {
                         $image = self::$reductionMap[$type][$previousType]['image'];
                         $type = (int) self::$reductionMap[$type][$previousType]['type'];
 
@@ -1020,10 +1053,10 @@ class PHPTokenizerInternal implements FullTokenizer
 
                         array_pop($this->tokens);
                     }
-                } elseif (isset($tokenMap[$token[0]])) {
-                    $type = (int) $tokenMap[$token[0]];
+                } elseif (isset($tokenMap[$token[0] ?? ''])) {
+                    $type = (int) $tokenMap[$token[0] ?? ''];
                     // Check for a context sensitive alternative
-                    if (isset(self::$alternativeMap[$type][$previousType])) {
+                    if (isset($previousType, self::$alternativeMap[$type][$previousType])) {
                         $type = self::$alternativeMap[$type][$previousType];
                     }
 

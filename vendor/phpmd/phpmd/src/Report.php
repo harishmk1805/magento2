@@ -62,7 +62,7 @@ class Report
             return;
         }
 
-        $fileName = $violation->getFileName();
+        $fileName = $violation->getFileName() ?? '';
         if (!isset($this->ruleViolations[$fileName])) {
             $this->ruleViolations[$fileName] = [];
         }

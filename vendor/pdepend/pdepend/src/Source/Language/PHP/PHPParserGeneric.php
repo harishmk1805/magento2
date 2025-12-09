@@ -55,7 +55,7 @@ use PDepend\Source\Tokenizer\Tokens;
  * @license http://www.opensource.org/licenses/bsd-license.php BSD License
  * @since 0.9.20
  */
-class PHPParserGeneric extends PHPParserVersion84
+class PHPParserGeneric extends PHPParserVersion85
 {
     /**
      * Tests if the give token is a valid function name in the supported PHP

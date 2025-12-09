@@ -120,10 +120,12 @@ use PDepend\Source\AST\ASTNamedArgument;
 use PDepend\Source\AST\ASTNamespace;
 use PDepend\Source\AST\ASTNode;
 use PDepend\Source\AST\ASTParentReference;
+use PDepend\Source\AST\ASTPipe;
 use PDepend\Source\AST\ASTPostfixExpression;
 use PDepend\Source\AST\ASTPreDecrementExpression;
 use PDepend\Source\AST\ASTPreIncrementExpression;
 use PDepend\Source\AST\ASTPrintExpression;
+use PDepend\Source\AST\ASTPropertyHook;
 use PDepend\Source\AST\ASTPropertyPostfix;
 use PDepend\Source\AST\ASTRequireExpression;
 use PDepend\Source\AST\ASTReturnStatement;
@@ -558,6 +560,23 @@ class PHPBuilder implements Builder
     }
 
     /**
+     * Builds a new property hook instance.
+     */
+    public function buildPropertyHook(string $name): ASTPropertyHook
+    {
+        $this->checkBuilderState();
+
+        // Debug method creation
+        Log::debug("Creating: \\PDepend\\Source\\AST\\ASTPropertyHook({$name})");
+
+        // Create a new method instance
+        $hook = new ASTPropertyHook($name);
+        $hook->setCache($this->cache);
+
+        return $hook;
+    }
+
+    /**
      * Builds a new package instance.
      *
      * @param string $name The package name.
@@ -988,6 +1007,16 @@ class PHPBuilder implements Builder
     public function buildAstBooleanAndExpression(): ASTBooleanAndExpression
     {
         return $this->buildAstNodeInstance(ASTBooleanAndExpression::class, '&&');
+    }
+
+    /**
+     * Builds a new pipe expression.
+     *
+     * @since  3.0.0
+     */
+    public function buildASTPipe(): ASTPipe
+    {
+        return $this->buildAstNodeInstance(ASTPipe::class, '|>');
     }
 
     /**
@@ -2191,7 +2220,7 @@ class PHPBuilder implements Builder
     {
         $this->storeTrait(
             $trait->getImage(),
-            $trait->getNamespaceName(),
+            $trait->getNamespaceName() ?? self::DEFAULT_NAMESPACE,
             $trait,
         );
     }
@@ -2205,7 +2234,7 @@ class PHPBuilder implements Builder
     {
         $this->storeClass(
             $class->getImage(),
-            $class->getNamespaceName(),
+            $class->getNamespaceName() ?? self::DEFAULT_NAMESPACE,
             $class,
         );
     }
@@ -2219,7 +2248,7 @@ class PHPBuilder implements Builder
     {
         $this->storeEnum(
             $enum->getImage(),
-            $enum->getNamespaceName(),
+            $enum->getNamespaceName() ?? self::DEFAULT_NAMESPACE,
             $enum,
         );
     }
@@ -2233,7 +2262,7 @@ class PHPBuilder implements Builder
     {
         $this->storeInterface(
             $interface->getImage(),
-            $interface->getNamespaceName(),
+            $interface->getNamespaceName() ?? self::DEFAULT_NAMESPACE,
             $interface,
         );
     }
@@ -2282,7 +2311,7 @@ class PHPBuilder implements Builder
      *
      * @since 1.0.0
      */
-    protected function storeTrait(?string $traitName, ?string $namespaceName, ASTTrait $trait): void
+    protected function storeTrait(?string $traitName, string $namespaceName, ASTTrait $trait): void
     {
         $traitName = strtolower($traitName ?? '');
         if (!isset($this->traits[$traitName][$namespaceName])) {
@@ -2290,7 +2319,7 @@ class PHPBuilder implements Builder
         }
         $this->traits[$traitName][$namespaceName][$trait->getId()] = $trait;
 
-        $namespace = $this->buildNamespace($namespaceName ?? self::DEFAULT_NAMESPACE);
+        $namespace = $this->buildNamespace($namespaceName);
         $namespace->addType($trait);
     }
 
@@ -2299,7 +2328,7 @@ class PHPBuilder implements Builder
      *
      * @since 0.9.5
      */
-    protected function storeClass(?string $className, ?string $namespaceName, ASTClass $class): void
+    protected function storeClass(?string $className, string $namespaceName, ASTClass $class): void
     {
         $className = strtolower($className ?? '');
         if (!isset($this->classes[$className][$namespaceName])) {
@@ -2307,7 +2336,7 @@ class PHPBuilder implements Builder
         }
         $this->classes[$className][$namespaceName][$class->getId()] = $class;
 
-        $namespace = $this->buildNamespace($namespaceName ?? self::DEFAULT_NAMESPACE);
+        $namespace = $this->buildNamespace($namespaceName);
         $namespace->addType($class);
     }
 
@@ -2316,7 +2345,7 @@ class PHPBuilder implements Builder
      *
      * @since 2.11.0
      */
-    protected function storeEnum(?string $enumName, ?string $namespaceName, ASTEnum $enum): void
+    protected function storeEnum(?string $enumName, string $namespaceName, ASTEnum $enum): void
     {
         $enumName = strtolower($enumName ?? '');
         if (!isset($this->classes[$enumName][$namespaceName])) {
@@ -2324,7 +2353,7 @@ class PHPBuilder implements Builder
         }
         $this->classes[$enumName][$namespaceName][$enum->getId()] = $enum;
 
-        $namespace = $this->buildNamespace($namespaceName ?? self::DEFAULT_NAMESPACE);
+        $namespace = $this->buildNamespace($namespaceName);
         $namespace->addType($enum);
     }
 
@@ -2333,16 +2362,16 @@ class PHPBuilder implements Builder
      *
      * @since 0.9.5
      */
-    protected function storeInterface(?string $interfaceName, ?string $namespaceName, ASTInterface $interface): void
+    protected function storeInterface(string $interfaceName, string $namespaceName, ASTInterface $interface): void
     {
-        $interfaceName = strtolower($interfaceName ?? '');
+        $interfaceName = strtolower($interfaceName);
         if (!isset($this->interfaces[$interfaceName][$namespaceName])) {
             $this->interfaces[$interfaceName][$namespaceName] = [];
         }
         $this->interfaces[$interfaceName][$namespaceName][$interface->getId()]
             = $interface;
 
-        $namespace = $this->buildNamespace($namespaceName ?? self::DEFAULT_NAMESPACE);
+        $namespace = $this->buildNamespace($namespaceName);
         $namespace->addType($interface);
     }
 

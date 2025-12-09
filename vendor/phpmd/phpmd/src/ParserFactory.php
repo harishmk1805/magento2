@@ -31,10 +31,10 @@ use PDepend\Input\ExtensionFilter;
 final class ParserFactory
 {
     /** @var string The default config file name */
-    private const PDEPEND_CONFIG_FILE_NAME = '/pdepend.xml';
+    private const PDEPEND_CONFIG_FILE_NAME = '/pdepend.yml';
 
     /** @var string The distribution config file name */
-    private const PDEPEND_CONFIG_FILE_NAME_DIST = '/pdepend.xml.dist';
+    private const PDEPEND_CONFIG_FILE_NAME_DIST = '/pdepend.yml.dist';
 
     /**
      * Mapping between phpmd option names and those used by pdepend.

@@ -160,6 +160,24 @@ class ASTFieldDeclaration extends AbstractASTNode
     }
 
     /**
+     * Returns <b>true</b> if this node is marked as protected(set), otherwise the
+     * returned value will be <b>false</b>.
+     */
+    public function isProtectedSet(): bool
+    {
+        return (($this->getModifiers() & State::IS_PROTECTED_SET) === State::IS_PROTECTED_SET);
+    }
+
+    /**
+     * Returns <b>true</b> if this node is marked as private(set), otherwise the
+     * returned value will be <b>false</b>.
+     */
+    public function isPrivateSet(): bool
+    {
+        return (($this->getModifiers() & State::IS_PRIVATE_SET) === State::IS_PRIVATE_SET);
+    }
+
+    /**
      * Returns <b>true</b> when this node is declared as static, otherwise
      * the returned value will be <b>false</b>.
      */

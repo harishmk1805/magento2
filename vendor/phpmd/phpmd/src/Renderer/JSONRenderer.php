@@ -70,8 +70,8 @@ class JSONRenderer extends AbstractRenderer
         foreach ($report->getRuleViolations() as $violation) {
             $fileName = $violation->getFileName();
             $rule = $violation->getRule();
-            $filesList[$fileName]['file'] = $fileName;
-            $filesList[$fileName]['violations'][] = [
+            $filesList[$fileName ?? '']['file'] = $fileName;
+            $filesList[$fileName ?? '']['violations'][] = [
                 'beginLine' => $violation->getBeginLine(),
                 'endLine' => $violation->getEndLine(),
                 'package' => $violation->getNamespaceName(),
